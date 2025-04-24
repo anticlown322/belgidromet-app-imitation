@@ -5,64 +5,60 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.fragment.app.activityViewModels
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.example.weatherapplication.R
-import com.example.weatherapplication.adapters.VpAdapter
+import com.example.weatherapplication.MainViewModel
 import com.example.weatherapplication.adapters.WeatherAdapter
 import com.example.weatherapplication.adapters.WeatherModel
 import com.example.weatherapplication.databinding.FragmentHoursBinding
+import org.json.JSONArray
+import org.json.JSONObject
 
 class HoursFragment : Fragment() {
-
     private lateinit var binding: FragmentHoursBinding
     private lateinit var adapter: WeatherAdapter
+    private val model : MainViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
         binding = FragmentHoursBinding.inflate(inflater, container, false)
-        // Inflate the layout for this fragment
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         initRcView()
+        model.liveDataCurrent.observe(viewLifecycleOwner) {
+            val list = getHoursList(it)
+            adapter.submitList(list)
+        }
     }
 
     private fun initRcView() = with(binding){
-        rcView.layoutManager = LinearLayoutManager(activity)
-        adapter = WeatherAdapter()
-        rcView.adapter = adapter
-        val list = listOf(
-            WeatherModel(
-                "", "12:00", "Sunny",
-                "25*", "","",
-                "",""
-            ),
-            WeatherModel(
-                "", "13:00", "Sunny",
-                "27*", "","",
-                "",""
-            ),
-            WeatherModel(
-                "", "14:00", "Sunny",
-                "35*", "","",
-                "",""
+        adapter = WeatherAdapter(null)
+        rcHoursView.layoutManager = LinearLayoutManager(activity)
+        rcHoursView.adapter = adapter
+    }
+
+    private fun getHoursList(wItem: WeatherModel): List<WeatherModel> {
+        val hoursArray = JSONArray(wItem.hours)
+        val list = ArrayList<WeatherModel>()
+        for (i in 0 until hoursArray.length()) {
+            val item = WeatherModel(
+                wItem.city,
+                (hoursArray[i] as JSONObject).getString("time"),
+                (hoursArray[i] as JSONObject).getJSONObject("condition").getString("text"),
+                (hoursArray[i] as JSONObject).getString("temp_c"),
+                "",
+                "",
+                (hoursArray[i] as JSONObject).getJSONObject("condition").getString("icon"),
+                ""
             )
-        )
-
-        if (list.isEmpty()) {
-            tvEmpty.visibility = View.VISIBLE
-            rcView.visibility = View.GONE
-        } else {
-            tvEmpty.visibility = View.GONE
-            rcView.visibility = View.VISIBLE
-            adapter.submitList(list)
+            list.add(item)
         }
-
-        adapter.submitList(list)
+        return list
     }
 
 

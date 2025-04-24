@@ -6,7 +6,7 @@
     </style>
 
     <style name="Theme.Weatherapplication" parent="Base.Theme.Weatherapplication" >
-        <item name="colorPrimary">@color/white</item>
+        <item name="colorPrimary">@color/blue</item>
         <item name="colorPrimaryVariant">@color/blue</item>
         <item name="colorOnPrimary">@color/white</item>
         <!-- Secondary brand color. -->

@@ -8,18 +8,30 @@ import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.weatherapplication.R
 import com.example.weatherapplication.databinding.ListItemBinding
+import com.squareup.picasso.Picasso
 
-class WeatherAdapter : ListAdapter<WeatherModel, WeatherAdapter.Holder>(Comparator()) {
-    class Holder(view: View) : RecyclerView.ViewHolder(view){
+class WeatherAdapter(val listener: Listener?) : ListAdapter<WeatherModel, WeatherAdapter.Holder>(Comparator()) {
+
+    class Holder(view: View, val listener: Listener?) : RecyclerView.ViewHolder(view) {
         val binding = ListItemBinding.bind(view)
-        fun bind(item: WeatherModel) = with(binding){
-            tvDate.text = item.time;
-            tvCondiotion.text = item.condition;
-            tvTemp.text = item.currentTemp;
+        var temporaryItem: WeatherModel? = null
+
+        init {
+            itemView.setOnClickListener {
+                temporaryItem?.let { it1 -> listener?.onClick(it1) }
+            }
+        }
+
+        fun bind(item: WeatherModel) = with(binding) {
+            temporaryItem = item
+            tvDate.text = item.time
+            tvCondiotion.text = item.condition
+            tvTemp.text = item.currentTemp.ifEmpty { "${item.maxTemp}C / ${item.minTemp}C" }
+            Picasso.get().load("https:" + item.imageUrl).into(im)
         }
     }
 
-    class Comparator : DiffUtil.ItemCallback<WeatherModel>(){
+    class Comparator : DiffUtil.ItemCallback<WeatherModel>() {
         override fun areItemsTheSame(oldItem: WeatherModel, newItem: WeatherModel): Boolean {
             return oldItem == newItem
         }
@@ -32,12 +44,14 @@ class WeatherAdapter : ListAdapter<WeatherModel, WeatherAdapter.Holder>(Comparat
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): Holder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.list_item, parent, false)
-        return Holder(view)
+        return Holder(view, listener)
     }
 
     override fun onBindViewHolder(holder: Holder, position: Int) {
         holder.bind(getItem(position))
     }
 
-
+    interface Listener {
+        fun onClick(item: WeatherModel)
+    }
 }
