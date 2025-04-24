@@ -149,8 +149,8 @@
 
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/vp"
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
+        android:layout_width="374dp"
+        android:layout_height="441dp"
         app:layout_constraintEnd_toEndOf="@+id/cardView"
         app:layout_constraintStart_toStartOf="@+id/cardView"
         app:layout_constraintTop_toBottomOf="@+id/tabLayout" />
