@@ -2,9 +2,14 @@ package com.example.weatherapplication
 
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
-import com.example.weatherapplication.adapters.WeatherModel
+import com.example.weatherapplication.entities.CurrentWeatherModel
+import com.example.weatherapplication.entities.ForecastDayModel
+import com.example.weatherapplication.entities.ForecastHourModel
 
-class MainViewModel: ViewModel() {
-    val liveDataCurrent = MutableLiveData<WeatherModel>()
-    val liveDataList = MutableLiveData<List<WeatherModel>>()
+class MainViewModel : ViewModel() {
+    val liveDataCurrent = MutableLiveData<CurrentWeatherModel>()
+
+    val liveDataDailyForecast = MutableLiveData<List<ForecastDayModel>>()
+
+    val liveDataHourlyForecast = MutableLiveData<List<ForecastHourModel>>()
 }

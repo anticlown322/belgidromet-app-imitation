@@ -59,18 +59,7 @@
                 android:textSize="60sp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/tvCity" />
-
-            <TextView
-                android:id="@+id/tvCity"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="London"
-                android:textColor="@color/white"
-                android:textSize="24sp"
-                app:layout_constraintEnd_toStartOf="@+id/imWeather"
-                app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@+id/imWeather" />
+                tools:layout_editor_absoluteY="72dp" />
 
             <ImageView
                 android:id="@+id/imWeather"
