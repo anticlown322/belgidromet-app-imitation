@@ -7,7 +7,6 @@ import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
@@ -19,6 +18,8 @@ import com.example.weatherapplication.adapters.WeatherPagerAdapter
 import com.example.weatherapplication.databinding.FragmentMainBinding
 import com.example.weatherapplication.dialogs.DialogListener
 import com.example.weatherapplication.dialogs.LocationSettingsDialog
+import com.example.weatherapplication.dialogs.UpdateResultDialog
+import com.example.weatherapplication.entities.ApiResponseModel
 import com.example.weatherapplication.services.dataCollection.WeatherCallback
 import com.example.weatherapplication.services.dataCollection.WeatherDataParser
 import com.example.weatherapplication.services.dataCollection.WeatherService
@@ -35,6 +36,10 @@ class MainFragment : Fragment(), PermissionCallback, LocationCallback {
     private lateinit var permissionService: PermissionService
     private lateinit var locationService: LocationService
     private lateinit var weatherService: WeatherService
+
+    private enum class RequestType { LOCATION, CITY }
+    private var lastRequestType: RequestType? = null
+    private var lastUpdateTime: String? = null
 
     private val model: MainViewModel by activityViewModels()
     private val weatherParser = WeatherDataParser()
@@ -58,7 +63,9 @@ class MainFragment : Fragment(), PermissionCallback, LocationCallback {
 
     override fun onResume() {
         super.onResume()
-        checkLocation()
+        if (lastRequestType != RequestType.CITY) {
+            requestWeatherByLocation()
+        }
     }
 
     private fun initDependencies() {
@@ -67,9 +74,7 @@ class MainFragment : Fragment(), PermissionCallback, LocationCallback {
         weatherService = WeatherService(requireContext())
     }
 
-    // UI
     private fun setupUI() = with(binding) {
-        // Настройка ViewPager и TabLayout
         val fragmentList = listOf(
             HoursFragment.newInstance(),
             DaysFragment.newInstance()
@@ -79,8 +84,15 @@ class MainFragment : Fragment(), PermissionCallback, LocationCallback {
         vp.adapter = adapter
         setupTabLayout(tabLayout, vp)
 
-        // Обработчики кликов
-        ibRefresh.setOnClickListener { checkLocation() }
+        ibRefresh.setOnClickListener {
+            when (lastRequestType) {
+                RequestType.CITY -> model.liveDataCurrent.value?.city?.let { city ->
+                    requestWeatherByCity(city, isManualRefresh = true)
+                }
+                else -> requestWeatherByLocation(isManualRefresh = true)
+            }
+        }
+
         ibSearch.setOnClickListener { showCitySearch() }
     }
 
@@ -117,34 +129,13 @@ class MainFragment : Fragment(), PermissionCallback, LocationCallback {
         }
     }
 
-    // Вызовы бизнес-логики
-    private fun requestWeatherData(city: String) {
-        weatherService.requestWeatherData(city, object : WeatherCallback {
-
-            override fun onSuccess(result: String) {
-                val response = weatherParser.parseWeatherResponse(result)
-
-                model.liveDataCurrent.value = response.current
-                model.liveDataDailyForecast.value = response.forecastDays
-
-                response.forecastDays.firstOrNull()?.let {
-                    model.liveDataHourlyForecast.value = it.hourlyForecasts
-                }
-            }
-
-            override fun onError(error: String) {
-                Toast.makeText(context, "Weather error: $error", Toast.LENGTH_SHORT).show()
-            }
-        })
-    }
-
     private fun setupCitySearchResultListener() {
         parentFragmentManager.setFragmentResultListener(
             "city_search_result",
             viewLifecycleOwner
         ) { _, bundle ->
             val city = bundle.getString("city") ?: return@setFragmentResultListener
-            requestWeatherData(city)
+            requestWeatherByCity(city)
         }
     }
 
@@ -156,6 +147,84 @@ class MainFragment : Fragment(), PermissionCallback, LocationCallback {
             .commit()
     }
 
+    private fun requestWeatherByLocation(isManualRefresh: Boolean = false) {
+        lastRequestType = RequestType.LOCATION
+        lastUpdateTime = model.liveDataCurrent.value?.localTime
+
+        if (permissionService.checkPermission(Manifest.permission.ACCESS_FINE_LOCATION)) {
+            locationService.getCurrentLocation(isManualRefresh)
+        } else {
+            permissionService.requestPermission(Manifest.permission.ACCESS_FINE_LOCATION)
+        }
+    }
+
+    private fun requestWeatherByCity(city: String, isManualRefresh: Boolean = false) {
+        lastRequestType = RequestType.CITY
+        lastUpdateTime = model.liveDataCurrent.value?.localTime
+
+        weatherService.requestWeatherDataByCity(city, object : WeatherCallback {
+            override fun onSuccess(result: String) {
+                val response = weatherParser.parseWeatherResponse(result)
+                updateWeatherData(response)
+
+                if (isManualRefresh) {
+                    showUpdateDialog(response.current.localTime)
+                }
+            }
+
+            override fun onError(error: String) {
+                Toast.makeText(context, "Error: $error", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+
+    private fun showUpdateDialog(newUpdateTime: String) {
+        val isUpdated = lastUpdateTime != newUpdateTime
+
+        UpdateResultDialog.show(
+            context = requireContext(),
+            isUpdated = isUpdated,
+            lastUpdateTime = lastUpdateTime,
+            newUpdateTime = if (isUpdated) newUpdateTime else null,
+            listener = object : DialogListener {
+                override fun onPositiveButtonClicked(data: Any?) {
+                }
+            }
+        )
+
+        lastUpdateTime = newUpdateTime
+    }
+
+    private fun updateWeatherData(response: ApiResponseModel) {
+        model.liveDataCurrent.value = response.current
+        model.liveDataDailyForecast.value = response.forecastDays
+        response.forecastDays.firstOrNull()?.let {
+            model.liveDataHourlyForecast.value = it.hourlyForecasts
+        }
+    }
+
+    // Location callbacks
+    override fun onLocationError(error: String) {
+        showLocationErrorDialog(error)
+    }
+
+    override fun onLocationReceived(latitude: Double, longitude: Double, isManualRefresh: Boolean) {
+        weatherService.requestWeatherDataByCoords(latitude, longitude, object : WeatherCallback {
+            override fun onSuccess(result: String) {
+                val response = weatherParser.parseWeatherResponse(result)
+                updateWeatherData(response)
+
+                if (isManualRefresh) {
+                    showUpdateDialog(response.current.localTime)
+                }
+            }
+
+            override fun onError(error: String) {
+                Toast.makeText(context, "Error: $error", Toast.LENGTH_SHORT).show()
+            }
+        })
+    }
+
     private fun showLocationErrorDialog(error: String) {
         LocationSettingsDialog.show(
             requireContext(),
@@ -164,55 +233,59 @@ class MainFragment : Fragment(), PermissionCallback, LocationCallback {
                     startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
                 }
 
-                // реализация по умолчанию
                 override fun onNegativeButtonClicked() = Unit
             }
         )
     }
 
-    private fun checkLocation() {
-        if (permissionService.checkPermission(Manifest.permission.ACCESS_FINE_LOCATION)) {
-            locationService.getCurrentLocation()
-        } else {
-            permissionService.requestPermission(Manifest.permission.ACCESS_FINE_LOCATION)
-        }
-    }
-
-    // Location callbacks
-    override fun onLocationReceived(latitude: Double, longitude: Double) {
-        requestWeatherData("$latitude,$longitude")
-    }
-
-    override fun onLocationError(error: String) {
-        showLocationErrorDialog(error)
-    }
-
     // Permission callbacks
     override fun onPermissionGranted() {
-        checkLocation()
+        requestWeatherByLocation()
     }
 
     override fun onPermissionDenied() {
         Toast.makeText(context, "Location permission denied", Toast.LENGTH_SHORT).show()
     }
+
     fun getBackgroundUrl(condition: String, isDay: Boolean = true): String {
         return when {
             !isDay -> getString(R.string.weather_bg_night)
             condition.contains("sunny", ignoreCase = true) ||
-                    condition.contains("clear", ignoreCase = true) -> getString(R.string.weather_bg_clear_sky)
+                    condition.contains(
+                        "clear",
+                        ignoreCase = true
+                    ) -> getString(R.string.weather_bg_clear_sky)
+
             condition.contains("cloudy", ignoreCase = true) ||
                     condition.contains("overcast", ignoreCase = true) ||
                     condition.contains("partly cloudy", ignoreCase = true) ||
                     condition.contains("fog", ignoreCase = true) ||
-                    condition.contains("mist", ignoreCase = true) -> getString(R.string.weather_bg_cloudy)
+                    condition.contains(
+                        "mist",
+                        ignoreCase = true
+                    ) -> getString(R.string.weather_bg_cloudy)
+
             condition.contains("rain", ignoreCase = true) ||
-                    condition.contains("drizzle", ignoreCase = true) -> getString(R.string.weather_bg_rain)
+                    condition.contains(
+                        "drizzle",
+                        ignoreCase = true
+                    ) -> getString(R.string.weather_bg_rain)
+
             condition.contains("snow", ignoreCase = true) ||
-                    condition.contains("sleet", ignoreCase = true) -> getString(R.string.weather_bg_snow)
-            condition.contains("thunder", ignoreCase = true) -> getString(R.string.weather_bg_thunderstorm)
+                    condition.contains(
+                        "sleet",
+                        ignoreCase = true
+                    ) -> getString(R.string.weather_bg_snow)
+
+            condition.contains(
+                "thunder",
+                ignoreCase = true
+            ) -> getString(R.string.weather_bg_thunderstorm)
+
             else -> getString(R.string.weather_bg_default)
         }
     }
+
     companion object {
         fun newInstance() = MainFragment()
     }

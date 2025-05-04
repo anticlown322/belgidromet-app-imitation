@@ -44,7 +44,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginTop="4dp"
                 android:text="TextView"
-                android:textColor="@color/material_dynamic_neutral20"
+                android:textColor="@color/black"
                 android:textColorLink="@color/white"
                 app:layout_constraintBottom_toTopOf="@+id/ibRefresh"
                 app:layout_constraintEnd_toEndOf="parent"
