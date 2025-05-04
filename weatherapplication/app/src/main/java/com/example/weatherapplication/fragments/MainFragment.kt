@@ -7,6 +7,7 @@ import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
@@ -90,11 +91,25 @@ class MainFragment : Fragment(), PermissionCallback, LocationCallback {
     }
 
     private fun updateCurrentCard() = with(binding) {
+        // Установка дефолтного фона при запуске (из strings.xml)
+        Picasso.get()
+            .load(getString(R.string.weather_bg_default))
+            .into(imageView)
+
         model.liveDataCurrent.observe(viewLifecycleOwner) { current ->
-            tvDate.text = current.localTime
+            tvCity.text = current.city
+            tvDate.text = "last update ${current.localTime}"
             tvCurrentTemp.text = "${current.tempC}°C"
             tvCondition.text = current.condition
             Picasso.get().load("https:" + current.imageUrl).into(imWeather)
+
+            // Установка фона в зависимости от погоды
+            val backgroundUrl = getBackgroundUrl(current.condition, current.isDay)
+            Picasso.get()
+                .load(backgroundUrl)
+                .placeholder(android.R.color.transparent) // или другой цвет // Локальный placeholder на случай ошибки
+                .error(android.R.color.transparent) // Локальный fallback
+                .into(imageView)
 
             model.liveDataDailyForecast.value?.firstOrNull()?.let {
                 tvMaxMin.text = "${it.maxTempC}°C / ${it.minTempC}°C"
@@ -180,7 +195,24 @@ class MainFragment : Fragment(), PermissionCallback, LocationCallback {
     override fun onPermissionDenied() {
         Toast.makeText(context, "Location permission denied", Toast.LENGTH_SHORT).show()
     }
-
+    fun getBackgroundUrl(condition: String, isDay: Boolean = true): String {
+        return when {
+            !isDay -> getString(R.string.weather_bg_night)
+            condition.contains("sunny", ignoreCase = true) ||
+                    condition.contains("clear", ignoreCase = true) -> getString(R.string.weather_bg_clear_sky)
+            condition.contains("cloudy", ignoreCase = true) ||
+                    condition.contains("overcast", ignoreCase = true) ||
+                    condition.contains("partly cloudy", ignoreCase = true) ||
+                    condition.contains("fog", ignoreCase = true) ||
+                    condition.contains("mist", ignoreCase = true) -> getString(R.string.weather_bg_cloudy)
+            condition.contains("rain", ignoreCase = true) ||
+                    condition.contains("drizzle", ignoreCase = true) -> getString(R.string.weather_bg_rain)
+            condition.contains("snow", ignoreCase = true) ||
+                    condition.contains("sleet", ignoreCase = true) -> getString(R.string.weather_bg_snow)
+            condition.contains("thunder", ignoreCase = true) -> getString(R.string.weather_bg_thunderstorm)
+            else -> getString(R.string.weather_bg_default)
+        }
+    }
     companion object {
         fun newInstance() = MainFragment()
     }
