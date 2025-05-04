@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="popular_cities">
+        <!-- Беларусь -->
+        <item>Minsk</item>
+        <item>Gomel</item>
+        <item>Mogilev</item>
+        <item>Vitebsk</item>
+        <item>Grodno</item>
+        <item>Brest</item>
+        <item>Bobruisk</item>
+        <item>Baranovichi</item>
+        <item>Borisov</item>
+        <item>Pinsk</item>
+        <item>Orsha</item>
+        <item>Mozyr</item>
+        <item>Soligorsk</item>
+        <item>Novopolotsk</item>
+        <item>Lida</item>
+
+        <!-- Россия -->
+        <item>Moscow</item>
+        <item>Saint Petersburg</item>
+        <item>Novosibirsk</item>
+        <item>Yekaterinburg</item>
+        <item>Kazan</item>
+        <item>Nizhny Novgorod</item>
+        <item>Chelyabinsk</item>
+        <item>Samara</item>
+        <item>Omsk</item>
+        <item>Rostov-on-Don</item>
+        <item>Ufa</item>
+        <item>Krasnoyarsk</item>
+        <item>Perm</item>
+        <item>Voronezh</item>
+        <item>Volgograd</item>
+
+        <!-- Европа -->
+        <item>London</item>
+        <item>Paris</item>
+        <item>Berlin</item>
+        <item>Madrid</item>
+        <item>Rome</item>
+        <item>Vienna</item>
+        <item>Prague</item>
+        <item>Warsaw</item>
+        <item>Budapest</item>
+        <item>Lisbon</item>
+        <item>Brussels</item>
+        <item>Amsterdam</item>
+        <item>Athens</item>
+        <item>Stockholm</item>
+        <item>Copenhagen</item>
+
+        <!-- Северная Америка -->
+        <item>New York</item>
+        <item>Los Angeles</item>
+        <item>Chicago</item>
+        <item>Houston</item>
+        <item>Toronto</item>
+        <item>Montreal</item>
+        <item>Vancouver</item>
+        <item>Mexico City</item>
+        <item>Miami</item>
+        <item>San Francisco</item>
+
+        <!-- Азия -->
+        <item>Tokyo</item>
+        <item>Beijing</item>
+        <item>Shanghai</item>
+        <item>Seoul</item>
+        <item>Hong Kong</item>
+        <item>Singapore</item>
+        <item>Bangkok</item>
+        <item>Delhi</item>
+        <item>Mumbai</item>
+        <item>Dubai</item>
+        <item>Istanbul</item>
+
+        <!-- Австралия и Океания -->
+        <item>Sydney</item>
+        <item>Melbourne</item>
+        <item>Brisbane</item>
+        <item>Perth</item>
+        <item>Auckland</item>
+
+        <!-- Южная Америка -->
+        <item>Rio de Janeiro</item>
+        <item>São Paulo</item>
+        <item>Buenos Aires</item>
+        <item>Lima</item>
+        <item>Bogotá</item>
+
+        <!-- Африка -->
+        <item>Cairo</item>
+        <item>Johannesburg</item>
+        <item>Cape Town</item>
+        <item>Nairobi</item>
+        <item>Casablanca</item>
+    </string-array>
+</resources>

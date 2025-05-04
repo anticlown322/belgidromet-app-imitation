@@ -12,7 +12,9 @@ class WeatherService(
 
     fun requestWeatherData(city: String, callback: WeatherCallback) {
         val url =
-            "https://api.weatherapi.com/v1/forecast.json?key=$API_KEY&q=$city&days=3&aqi=no&alerts=no"
+            "https://api.weatherapi.com/v1/forecast.json?key=$API_KEY&q=$city&days=10" +
+                    "" +
+                    "&aqi=no&alerts=no"
 
         val queue = Volley.newRequestQueue(context)
         val request = StringRequest(

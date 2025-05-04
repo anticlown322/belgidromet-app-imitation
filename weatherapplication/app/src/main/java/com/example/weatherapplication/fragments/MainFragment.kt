@@ -13,9 +13,9 @@ import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.activityViewModels
 import androidx.viewpager2.widget.ViewPager2
 import com.example.weatherapplication.MainViewModel
+import com.example.weatherapplication.R
 import com.example.weatherapplication.adapters.WeatherPagerAdapter
 import com.example.weatherapplication.databinding.FragmentMainBinding
-import com.example.weatherapplication.dialogs.CitySearchDialog
 import com.example.weatherapplication.dialogs.DialogListener
 import com.example.weatherapplication.dialogs.LocationSettingsDialog
 import com.example.weatherapplication.services.dataCollection.WeatherCallback
@@ -52,6 +52,7 @@ class MainFragment : Fragment(), PermissionCallback, LocationCallback {
         initDependencies()
         setupUI()
         updateCurrentCard()
+        setupCitySearchResultListener()
     }
 
     override fun onResume() {
@@ -79,7 +80,7 @@ class MainFragment : Fragment(), PermissionCallback, LocationCallback {
 
         // Обработчики кликов
         ibRefresh.setOnClickListener { checkLocation() }
-        ibSearch.setOnClickListener { showCitySearchDialog() }
+        ibSearch.setOnClickListener { showCitySearch() }
     }
 
     private fun setupTabLayout(tabLayout: TabLayout, viewPager: ViewPager2) {
@@ -90,7 +91,7 @@ class MainFragment : Fragment(), PermissionCallback, LocationCallback {
 
     private fun updateCurrentCard() = with(binding) {
         model.liveDataCurrent.observe(viewLifecycleOwner) { current ->
-            tvData.text = current.localTime
+            tvDate.text = current.localTime
             tvCurrentTemp.text = "${current.tempC}°C"
             tvCondition.text = current.condition
             Picasso.get().load("https:" + current.imageUrl).into(imWeather)
@@ -122,19 +123,22 @@ class MainFragment : Fragment(), PermissionCallback, LocationCallback {
         })
     }
 
-    private fun showCitySearchDialog() {
-        CitySearchDialog.show(
-            requireContext(),
-            listener = object : DialogListener {
-                override fun onPositiveButtonClicked(data: Any?) {
-                    val cityName = data as? String ?: return
-                    requestWeatherData(cityName)
-                }
+    private fun setupCitySearchResultListener() {
+        parentFragmentManager.setFragmentResultListener(
+            "city_search_result",
+            viewLifecycleOwner
+        ) { _, bundle ->
+            val city = bundle.getString("city") ?: return@setFragmentResultListener
+            requestWeatherData(city)
+        }
+    }
 
-                // реализация по умолчанию
-                override fun onNegativeButtonClicked() = Unit
-            }
-        )
+    private fun showCitySearch() {
+        val searchFragment = CitySearchFragment.newInstance()
+        requireActivity().supportFragmentManager.beginTransaction()
+            .replace(R.id.fragment_container, searchFragment)
+            .addToBackStack("city_search")
+            .commit()
     }
 
     private fun showLocationErrorDialog(error: String) {
@@ -176,7 +180,6 @@ class MainFragment : Fragment(), PermissionCallback, LocationCallback {
     override fun onPermissionDenied() {
         Toast.makeText(context, "Location permission denied", Toast.LENGTH_SHORT).show()
     }
-
 
     companion object {
         fun newInstance() = MainFragment()

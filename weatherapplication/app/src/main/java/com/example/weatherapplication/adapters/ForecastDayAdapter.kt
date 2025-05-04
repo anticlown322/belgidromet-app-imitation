@@ -31,8 +31,7 @@ class ForecastDayAdapter(
                 val date = dateFormat.parse(day.date)
                 tvDay.text = SimpleDateFormat("EEEE", Locale.getDefault()).format(date)
 
-                tvMaxTemp.text = "Max: ${day.maxTempC}°C"
-                tvMinTemp.text = "Min: ${day.minTempC}°C"
+                tvTemp.text = "${day.maxTempC}°C / ${day.minTempC}°C"
                 tvCondition.text = day.condition
                 Picasso.get().load("https:${day.imageUrl}").into(ivIcon)
 
