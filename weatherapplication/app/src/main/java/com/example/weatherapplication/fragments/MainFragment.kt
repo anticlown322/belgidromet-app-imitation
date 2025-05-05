@@ -1,5 +1,6 @@
 package com.example.weatherapplication.fragments
 
+import MusicPlayer
 import android.Manifest
 import android.content.Intent
 import android.os.Bundle
@@ -37,7 +38,7 @@ class MainFragment : Fragment(), PermissionCallback, LocationCallback {
     private lateinit var permissionService: PermissionService
     private lateinit var locationService: LocationService
     private lateinit var weatherService: WeatherService
-
+    private lateinit var musicPlayer: MusicPlayer
     private enum class RequestType { LOCATION, CITY }
     private var lastRequestType: RequestType? = null
     private var lastUpdateTime: String? = null
@@ -51,6 +52,7 @@ class MainFragment : Fragment(), PermissionCallback, LocationCallback {
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentMainBinding.inflate(inflater, container, false)
+        musicPlayer = MusicPlayer(requireContext())  // Инициализация здесь
         return binding.root
     }
 
@@ -110,6 +112,7 @@ class MainFragment : Fragment(), PermissionCallback, LocationCallback {
             .into(imageView)
 
         model.liveDataCurrent.observe(viewLifecycleOwner) { current ->
+            musicPlayer.playMusicForWeather(current.condition, current.isDay)
             tvCity.text = current.city
             tvDate.text = "last update ${current.localTime}"
             tvCurrentTemp.text = "${current.tempC}°C"
@@ -150,6 +153,7 @@ class MainFragment : Fragment(), PermissionCallback, LocationCallback {
     }
 
     private fun requestWeatherByLocation(isManualRefresh: Boolean = false) {
+        musicPlayer.stopCurrentTrack()
         lastRequestType = RequestType.LOCATION
         lastUpdateTime = model.liveDataCurrent.value?.localTime
 
@@ -160,7 +164,13 @@ class MainFragment : Fragment(), PermissionCallback, LocationCallback {
         }
     }
 
+    override fun onDestroyView() {
+        musicPlayer.release()
+        super.onDestroyView()
+    }
+
     private fun requestWeatherByCity(city: String, isManualRefresh: Boolean = false) {
+        musicPlayer.stopCurrentTrack()
         lastRequestType = RequestType.CITY
         lastUpdateTime = model.liveDataCurrent.value?.localTime
 
