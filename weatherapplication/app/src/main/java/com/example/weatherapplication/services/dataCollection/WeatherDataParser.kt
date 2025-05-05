@@ -4,6 +4,7 @@ import com.example.weatherapplication.entities.CurrentWeatherModel
 import com.example.weatherapplication.entities.ForecastDayModel
 import com.example.weatherapplication.entities.ForecastHourModel
 import com.example.weatherapplication.entities.ApiResponseModel
+import com.example.weatherapplication.entities.ForecastDetailsModel
 import com.example.weatherapplication.entities.WeatherAlert
 import org.json.JSONArray
 import org.json.JSONObject
@@ -18,8 +19,9 @@ class WeatherDataParser {
         )
         val forecastDays = parseForecastDays(mainObject.getJSONObject("forecast"))
         val alerts = generateWeatherAlerts(mainObject)
+        val details = parseDetailsForecast(mainObject)
 
-        return ApiResponseModel(current, forecastDays, alerts)
+        return ApiResponseModel(current, forecastDays, alerts, details)
     }
 
     private fun generateWeatherAlerts(weatherData: JSONObject): List<WeatherAlert> {
@@ -186,8 +188,22 @@ class WeatherDataParser {
         return hourlyList
     }
 
+    private fun parseDetailsForecast(forecastObject: JSONObject): ForecastDetailsModel {
+        val current = forecastObject.getJSONObject("current")
+        val forecast = forecastObject.getJSONObject("forecast")
+        val forecastDay = forecast.getJSONArray("forecastday").getJSONObject(0).getJSONObject("day")
 
-
-
-
+        return ForecastDetailsModel(
+            humidity = current.getInt("humidity"),
+            windSpeed = current.getDouble("wind_kph"),
+            windDirection = current.getString("wind_dir"),
+            pressure = current.getDouble("pressure_mb"),
+            precipitation = forecastDay.getDouble("totalprecip_mm"),
+            uvIndex = current.getDouble("uv"),
+            visibility = current.getDouble("vis_km"),
+            feelsLike = current.getDouble("feelslike_c"),
+            gustSpeed = current.getDouble("gust_kph"),
+            cloudCover = current.getInt("cloud")
+        )
+    }
 }

@@ -80,7 +80,8 @@ class MainFragment : Fragment(), PermissionCallback, LocationCallback {
     private fun setupUI() = with(binding) {
         val fragmentList = listOf(
             HoursFragment.newInstance(),
-            DaysFragment.newInstance()
+            DaysFragment.newInstance(),
+            DetailsFragment.newInstance()
         )
 
         val adapter = WeatherPagerAdapter(activity as FragmentActivity, fragmentList)
@@ -101,7 +102,7 @@ class MainFragment : Fragment(), PermissionCallback, LocationCallback {
 
     private fun setupTabLayout(tabLayout: TabLayout, viewPager: ViewPager2) {
         TabLayoutMediator(tabLayout, viewPager) { tab, pos ->
-            tab.text = listOf("Hours", "Days")[pos]
+            tab.text = listOf("Hours", "Days", "Details")[pos]
         }.attach()
     }
 
@@ -211,6 +212,7 @@ class MainFragment : Fragment(), PermissionCallback, LocationCallback {
         model.liveDataCurrent.value = response.current
         model.liveDataDailyForecast.value = response.forecastDays
         model.liveDataAlerts.value = response.alerts
+        model.liveDataCurrentDetails.value = response.details
 
         updateNotificationButton(response.alerts.isNotEmpty())
         response.forecastDays.firstOrNull()?.let {
