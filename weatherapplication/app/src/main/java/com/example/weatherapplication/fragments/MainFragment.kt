@@ -8,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.activityViewModels
@@ -81,7 +82,34 @@ class MainFragment : Fragment(), PermissionCallback, LocationCallback {
         // Обработчики кликов
         ibRefresh.setOnClickListener { checkLocation() }
         ibSearch.setOnClickListener { showCitySearch() }
+
+        idNotification.setOnClickListener { showWeatherAlerts() }
     }
+
+    private fun updateNotificationButton(hasAlerts: Boolean) {
+        val color = if (hasAlerts) {
+            ContextCompat.getColor(requireContext(), R.color.red) // или ваш цвет
+        } else {
+            ContextCompat.getColor(requireContext(), R.color.default_icon_color)
+        }
+        binding.idNotification.setColorFilter(color)
+    }
+
+    private fun showWeatherAlerts() {
+        val alerts = model.liveDataAlerts.value ?: return
+        if (alerts.isNotEmpty()) {
+            // Создаем и показываем фрагмент/диалог с уведомлениями
+            val alertFragment = WeatherAlertsFragment.newInstance(alerts)
+            requireActivity().supportFragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, alertFragment)
+                .addToBackStack("weather_alerts")
+                .commit()
+        } else {
+            Toast.makeText(context, "No active weather alerts", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+
 
     private fun setupTabLayout(tabLayout: TabLayout, viewPager: ViewPager2) {
         TabLayoutMediator(tabLayout, viewPager) { tab, pos ->
@@ -111,6 +139,9 @@ class MainFragment : Fragment(), PermissionCallback, LocationCallback {
 
                 model.liveDataCurrent.value = response.current
                 model.liveDataDailyForecast.value = response.forecastDays
+                model.liveDataAlerts.value = response.alerts // Добавляем предупреждения в модель
+
+                updateNotificationButton(response.alerts.isNotEmpty())
 
                 response.forecastDays.firstOrNull()?.let {
                     model.liveDataHourlyForecast.value = it.hourlyForecasts

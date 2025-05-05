@@ -9,4 +9,9 @@
     <color name="white">#FFFFFFFF</color>
     <color name="card_blue_bg">#6603A9F4</color>
     <color name="blue">#03A9F4</color>
+    <color name="red">#FF0000</color>
+    <color name="default_icon_color">#000000</color>
+    <color name="alert_high">#FF0000</color>
+    <color name="alert_medium">#E1961E</color>
+    <color name="alert_low">#C3A83C</color>
 </resources>
