@@ -8,6 +8,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentActivity
 import androidx.fragment.app.activityViewModels
@@ -92,7 +93,7 @@ class MainFragment : Fragment(), PermissionCallback, LocationCallback {
                 else -> requestWeatherByLocation(isManualRefresh = true)
             }
         }
-
+        idNotification.setOnClickListener { showWeatherAlerts() }
         ibSearch.setOnClickListener { showCitySearch() }
     }
 
@@ -130,26 +131,6 @@ class MainFragment : Fragment(), PermissionCallback, LocationCallback {
     }
 
     // Вызовы бизнес-логики
-    private fun requestWeatherData(city: String) {
-        weatherService.requestWeatherDataByCity(city, object : WeatherCallback {
-
-            override fun onSuccess(result: String) {
-                val response = weatherParser.parseWeatherResponse(result)
-
-                model.liveDataCurrent.value = response.current
-                model.liveDataDailyForecast.value = response.forecastDays
-
-                response.forecastDays.firstOrNull()?.let {
-                    model.liveDataHourlyForecast.value = it.hourlyForecasts
-                }
-            }
-
-            override fun onError(error: String) {
-                Toast.makeText(context, "Weather error: $error", Toast.LENGTH_SHORT).show()
-            }
-        })
-    }
-
     private fun setupCitySearchResultListener() {
         parentFragmentManager.setFragmentResultListener(
             "city_search_result",
@@ -219,8 +200,34 @@ class MainFragment : Fragment(), PermissionCallback, LocationCallback {
     private fun updateWeatherData(response: ApiResponseModel) {
         model.liveDataCurrent.value = response.current
         model.liveDataDailyForecast.value = response.forecastDays
+        model.liveDataAlerts.value = response.alerts
+
+        updateNotificationButton(response.alerts.isNotEmpty())
         response.forecastDays.firstOrNull()?.let {
             model.liveDataHourlyForecast.value = it.hourlyForecasts
+        }
+    }
+
+    private fun updateNotificationButton(hasAlerts: Boolean) {
+        val color = if (hasAlerts) {
+            ContextCompat.getColor(requireContext(), R.color.red)
+        } else {
+            ContextCompat.getColor(requireContext(), R.color.default_icon_color)
+        }
+        binding.idNotification.setColorFilter(color)
+    }
+
+    private fun showWeatherAlerts() {
+        val alerts = model.liveDataAlerts.value ?: return
+        if (alerts.isNotEmpty()) {
+            // Создаем и показываем фрагмент/диалог с уведомлениями
+            val alertFragment = WeatherAlertsFragment.newInstance(alerts)
+            requireActivity().supportFragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, alertFragment)
+                .addToBackStack("weather_alerts")
+                .commit()
+        } else {
+            Toast.makeText(context, "No active weather alerts", Toast.LENGTH_SHORT).show()
         }
     }
 
