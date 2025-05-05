@@ -131,7 +131,7 @@ class MainFragment : Fragment(), PermissionCallback, LocationCallback {
 
     // Вызовы бизнес-логики
     private fun requestWeatherData(city: String) {
-        weatherService.requestWeatherData(city, object : WeatherCallback {
+        weatherService.requestWeatherDataByCity(city, object : WeatherCallback {
 
             override fun onSuccess(result: String) {
                 val response = weatherParser.parseWeatherResponse(result)
