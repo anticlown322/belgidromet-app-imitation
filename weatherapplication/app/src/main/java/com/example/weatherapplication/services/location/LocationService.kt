@@ -18,7 +18,7 @@ class LocationService(
         LocationServices.getFusedLocationProviderClient(context)
     }
 
-    fun getCurrentLocation() {
+    fun getCurrentLocation(isManualRefresh: Boolean) {
         if (!checkPermissions()) {
             callback.onLocationError("Location permissions not granted")
             return
@@ -52,7 +52,7 @@ class LocationService(
             ).addOnCompleteListener { task ->
                 if (task.isSuccessful && task.result != null) {
                     val location = task.result
-                    callback.onLocationReceived(location.latitude, location.longitude)
+                    callback.onLocationReceived(location.latitude, location.longitude, isManualRefresh)
                 } else {
                     callback.onLocationError("Unable to get location: ${task.exception?.message}")
                 }

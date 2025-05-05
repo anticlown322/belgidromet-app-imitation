@@ -12,7 +12,10 @@ class WeatherDataParser {
 
     fun parseWeatherResponse(response: String): ApiResponseModel {
         val mainObject = JSONObject(response)
-        val current = parseCurrentWeather(mainObject.getJSONObject("current"))
+        val current = parseCurrentWeather(
+            currentObject = mainObject.getJSONObject("current"),
+            locationObject = mainObject.getJSONObject("location")
+        )
         val forecastDays = parseForecastDays(mainObject.getJSONObject("forecast"))
         val alerts = generateWeatherAlerts(mainObject)
 
@@ -122,14 +125,20 @@ class WeatherDataParser {
         return alerts
     }
 
-    private fun parseCurrentWeather(currentObject: JSONObject): CurrentWeatherModel {
+    private fun parseCurrentWeather(
+        currentObject: JSONObject,
+        locationObject: JSONObject // Добавляем параметр location
+    ): CurrentWeatherModel {
         val conditionObject = currentObject.getJSONObject("condition")
+        val isDay = currentObject.getInt("is_day") == 1
 
         return CurrentWeatherModel(
             localTime = currentObject.getString("last_updated"),
             condition = conditionObject.getString("text"),
             tempC = currentObject.getDouble("temp_c"),
-            imageUrl = conditionObject.getString("icon")
+            imageUrl = conditionObject.getString("icon"),
+            isDay = isDay,
+            city = locationObject.getString("name")
         )
     }
 
@@ -176,6 +185,9 @@ class WeatherDataParser {
 
         return hourlyList
     }
+
+
+
 
 
 }

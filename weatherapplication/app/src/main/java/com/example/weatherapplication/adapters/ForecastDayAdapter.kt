@@ -26,10 +26,10 @@ class ForecastDayAdapter(
 
         fun bind(day: ForecastDayModel) {
             with(binding) {
-                // Форматируем дату в название дня недели
-                val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                // Форматируем дату в название дня недели на английском
+                val dateFormat = SimpleDateFormat("yyyy-MM-dd", Locale.ENGLISH)
                 val date = dateFormat.parse(day.date)
-                tvDay.text = SimpleDateFormat("EEEE", Locale.getDefault()).format(date)
+                tvDay.text = SimpleDateFormat("EEEE", Locale.ENGLISH).format(date)
 
                 tvTemp.text = "${day.maxTempC}°C / ${day.minTempC}°C"
                 tvCondition.text = day.condition
@@ -40,6 +40,7 @@ class ForecastDayAdapter(
         }
     }
 
+    // Остальной код без изменений
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DayViewHolder {
         val binding = ItemDayBinding.inflate(
             LayoutInflater.from(parent.context),

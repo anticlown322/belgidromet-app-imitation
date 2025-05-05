@@ -1,5 +1,12 @@
 <resources>
     <string name="app_name">weatherapplication</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+
+    <!-- Фоны для погоды -->
+    <string name="weather_bg_clear_sky">https://i.ytimg.com/vi/OB7s9y3YHUU/maxresdefault.jpg?sqp=-oaymwEmCIAKENAF8quKqQMa8AEB-AH-CYAC0AWKAgwIABABGD8gZSgbMA8=&amp;rs=AOn4CLBbZKqaZT5HqiIzd0T1g5p8vnVY4g</string>
+    <string name="weather_bg_night">https://avatars.mds.yandex.net/get-znatoki-cover/879490/2a00000184a1bce522397e5d705ee3337f84/orig</string>
+    <string name="weather_bg_cloudy">https://i.pinimg.com/736x/77/5c/cd/775ccd3a4066b2a2c948fcfffcc669e6.jpg</string>
+    <string name="weather_bg_rain">https://runews24.ru/assets/images/uploads/2021/8/7/0-1-0.water-snow-sunlight-morning-rain-leaf-underwater-reflection-weather-freezing-20070.jpg</string>
+    <string name="weather_bg_snow">https://puzzleit.ru/files/puzzles/228/227810/_original.jpg</string>
+    <string name="weather_bg_thunderstorm">https://cdn.culture.ru/images/eb165ecf-131d-508f-a4a0-98430dbb681f</string>
+    <string name="weather_bg_default">https://i.pinimg.com/736x/0e/c0/2f/0ec02fdfba24acedbb498eaa052f4d38.jpg</string>
 </resources>
